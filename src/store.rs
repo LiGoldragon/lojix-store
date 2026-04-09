@@ -5,6 +5,10 @@ pub type ContentHash = [u8; 32];
 
 /// Content-addressed store. Immutable: same bytes always produce the same
 /// hash. Writes are idempotent. Values are never updated or deleted.
+///
+/// The `kind` byte sorts objects into typed namespaces:
+/// strings, sema objects per struct type, arbor nodes, manifests, commits.
+/// All live in one store, content-addressed within each kind.
 pub trait Store {
     /// Store bytes, return their content hash. Skips if already present.
     fn put(&mut self, kind: u8, data: &[u8]) -> Result<ContentHash, Error>;
@@ -12,8 +16,14 @@ pub trait Store {
     /// Retrieve bytes by content hash.
     fn get(&self, hash: &ContentHash) -> Result<&[u8], Error>;
 
+    /// Retrieve bytes and kind by content hash.
+    fn get_typed(&self, hash: &ContentHash) -> Result<(u8, &[u8]), Error>;
+
     /// Check if a hash exists without loading the data.
     fn contains(&self, hash: &ContentHash) -> bool;
+
+    /// Iterate all entries of a given kind.
+    fn scan(&self, kind: u8) -> Vec<(ContentHash, &[u8])>;
 }
 
 /// Hash bytes with blake3, returning the content address.
@@ -65,8 +75,23 @@ impl Store for MemoryStore {
             .ok_or(Error::NotFound(*hash))
     }
 
+    fn get_typed(&self, hash: &ContentHash) -> Result<(u8, &[u8]), Error> {
+        self.entries
+            .get(hash)
+            .map(|(kind, data)| (*kind, data.as_slice()))
+            .ok_or(Error::NotFound(*hash))
+    }
+
     fn contains(&self, hash: &ContentHash) -> bool {
         self.entries.contains_key(hash)
+    }
+
+    fn scan(&self, kind: u8) -> Vec<(ContentHash, &[u8])> {
+        self.entries
+            .iter()
+            .filter(|(_, (k, _))| *k == kind)
+            .map(|(hash, (_, data))| (*hash, data.as_slice()))
+            .collect()
     }
 }
 
@@ -127,5 +152,35 @@ mod tests {
         let expected = *blake3::hash(data).as_bytes();
         let actual = content_hash(data);
         assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn get_typed_returns_kind() {
+        let mut store = MemoryStore::new();
+        let hash = store.put(7, b"typed data").unwrap();
+        let (kind, data) = store.get_typed(&hash).unwrap();
+        assert_eq!(kind, 7);
+        assert_eq!(data, b"typed data");
+    }
+
+    #[test]
+    fn scan_filters_by_kind() {
+        let mut store = MemoryStore::new();
+        store.put(1, b"thought alpha").unwrap();
+        store.put(1, b"thought beta").unwrap();
+        store.put(2, b"rule gamma").unwrap();
+        store.put(0, b"string delta").unwrap();
+
+        let thoughts = store.scan(1);
+        assert_eq!(thoughts.len(), 2);
+
+        let rules = store.scan(2);
+        assert_eq!(rules.len(), 1);
+
+        let strings = store.scan(0);
+        assert_eq!(strings.len(), 1);
+
+        let empty = store.scan(99);
+        assert!(empty.is_empty());
     }
 }
