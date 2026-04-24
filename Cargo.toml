@@ -3,6 +3,7 @@ name = "lojix-store"
 version = "0.1.0"
 edition = "2024"
 
+# Scaffold only. The real implementation starts when lojixd
+# scaffolds (mentci-next/reports/030 Phase C). See AGENTS.md.
+
 [dependencies]
-blake3 = "1"
-arbor = { path = "../arbor" }
