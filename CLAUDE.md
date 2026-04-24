@@ -1,49 +1,68 @@
 # criome-store
 
-The universal content-addressed store for the sema ecosystem. Every
-object — strings, sema objects, arbor tree nodes, manifests, commits —
-lives here, sorted by kind, addressed by blake3 hash.
+> **⚠ Context: renamed in the canonical architecture**
+>
+> Per `mentci-next/docs/architecture.md` and
+> `mentci-next/reports/019`, the MVP splits this slot into two:
+>
+> - **sema** — records database (redb-backed; logical code
+>   records, owned by criomed).
+> - **lojix-store** — opaque blob store (append-only file +
+>   hash→offset index; compiled binaries, attachments; owned by
+>   lojixd).
+>
+> This repo is the **predecessor** of `lojix-store`. It still
+> contains the content-addressed-blob prototype; the
+> `MemoryStore` and `ChunkStore` traits below are the seed for
+> `lojix-store`'s reader library.
+>
+> It is **not** the single universal store the first paragraph
+> below describes. Records and blobs have diverged.
 
-## Dependency
+Earlier framing (kept for historical reference):
 
-criome-store depends on arbor. It implements arbor's `ChunkStore` trait,
-bridging arbor trees to the content-addressed store. arbor chunks get
-`KIND_ARBOR_NODE` (0xA0) as their type tag.
+The content-addressed blob store for the lojix family. Holds
+opaque bytes — compiled binaries, user file attachments, any
+large/unstructured payload — addressed by blake3. In the MVP
+architecture, every record in sema that references large data
+stores a `BlobRef` pointing here.
 
-## Two Traits
+## Planned shape (renaming to lojix-store)
 
-**`Store`** — the typed layer. `put(kind, data) → hash`, `get(hash) → bytes`,
-`get_typed(hash) → (kind, bytes)`, `scan(kind) → entries`. The `kind` byte
-sorts objects into typed namespaces.
+**Append-only file + rebuildable hash→offset index.** No kind
+bytes in the MVP schema (per `mentci-next/reports/017`): blob
+types are known only through the sema records that reference
+them. The `kind_byte` idea below survives only as a historical
+marker; new code should not depend on it.
 
-**`ChunkStore`** (from arbor) — the raw layer. `put(hash, bytes)`,
-`get(hash) → bytes`, `contains(hash)`. arbor trees use this interface
-without knowing about kinds. criome-store's `MemoryStore` implements both.
+## Two Traits (prototype)
 
-## Kind Bytes
+**`Store`** — the prototype typed layer; see historical note
+above. Kept for tests.
 
-```
-0x00..0x0F    strings (transitional — until sema enumerates them)
-0x10..0x1F    sema objects per struct type
-0xA0          arbor tree nodes
-0xF0          manifests
-0xF1          commits
-```
+**`ChunkStore`** (from arbor) — the raw layer.
+`put(hash, bytes)`, `get(hash) → bytes`, `contains(hash)`.
 
 ## Current Implementation
 
 `MemoryStore` — in-memory `HashMap<ContentHash, (u8, Vec<u8>)>`. 9 tests.
+Good for development; does not reflect the terminal architecture.
 
 ## Target: Append-Only File Store
 
 ```
-~/.criome/store/
-  store.bin     append-only data file (all objects)
-  store.idx     hash→(offset, length, kind) cache (rebuildable)
+~/.lojix/store/
+  store.bin     append-only data file (all blobs)
+  store.idx     hash→(offset, length) cache (rebuildable)
 ```
 
-Not yet built. `MemoryStore` is sufficient for development and testing.
-`FileStore` drops in behind the same `Store` + `ChunkStore` traits.
+Directory renames from `~/.criome/store/` to `~/.lojix/store/`
+when the lojix-store repo consolidates.
+
+## Dependency on arbor
+
+Shelved for MVP. When arbor returns (post-self-hosting), the
+`ChunkStore` trait is how it plugs in.
 
 ## VCS
 
