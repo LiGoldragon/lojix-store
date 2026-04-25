@@ -84,9 +84,9 @@ land in lojixd's StoreWriter / StoreReaderPool actors.
 ## Cross-cutting context
 
 - Two-stores model:
-  [mentci-next/docs/architecture.md §5](https://github.com/LiGoldragon/mentci-next/blob/main/docs/architecture.md)
+  [criome/ARCHITECTURE.md §5](https://github.com/LiGoldragon/criome/blob/main/ARCHITECTURE.md)
 - Compile + self-host loop:
-  [mentci-next/docs/architecture.md §7](https://github.com/LiGoldragon/mentci-next/blob/main/docs/architecture.md)
+  [criome/ARCHITECTURE.md §7](https://github.com/LiGoldragon/criome/blob/main/ARCHITECTURE.md)
 
 ## Status
 
