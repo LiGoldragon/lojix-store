@@ -71,3 +71,56 @@ pub enum HashParseError {
     #[error("wrong length; expected {HASH_LEN} bytes")]
     WrongLength,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_bytes() -> [u8; HASH_LEN] {
+        let mut b = [0u8; HASH_LEN];
+        for (i, slot) in b.iter_mut().enumerate() {
+            *slot = i as u8;
+        }
+        b
+    }
+
+    #[test]
+    fn roundtrip_preserves_identity() {
+        let bytes = sample_bytes();
+        let hash = StoreEntryHash(bytes);
+        let hex = hash.to_hex();
+        assert_eq!(hex.len(), HASH_LEN * 2);
+        let recovered = StoreEntryHash::from_hex(&hex).expect("parse");
+        assert_eq!(recovered, hash);
+    }
+
+    #[test]
+    fn from_hex_rejects_wrong_length() {
+        assert!(matches!(
+            StoreEntryHash::from_hex("00"),
+            Err(HashParseError::WrongLength)
+        ));
+        assert!(matches!(
+            StoreEntryHash::from_hex(&"a".repeat(63)),
+            Err(HashParseError::WrongLength)
+        ));
+    }
+
+    #[test]
+    fn from_hex_rejects_non_hex_chars() {
+        let bad = "z".repeat(HASH_LEN * 2);
+        assert!(matches!(
+            StoreEntryHash::from_hex(&bad),
+            Err(HashParseError::InvalidHex)
+        ));
+    }
+
+    #[test]
+    fn from_hex_accepts_mixed_case() {
+        let upper = "DEADBEEF".repeat(8);
+        let lower = "deadbeef".repeat(8);
+        let h_upper = StoreEntryHash::from_hex(&upper).expect("uppercase parses");
+        let h_lower = StoreEntryHash::from_hex(&lower).expect("lowercase parses");
+        assert_eq!(h_upper, h_lower);
+    }
+}

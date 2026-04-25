@@ -67,3 +67,35 @@ impl StorePath {
         &self.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::hash::HASH_LEN;
+
+    #[test]
+    fn default_path_ends_with_store_dir() {
+        let root = StoreRoot::default_for_user();
+        let s = root.0.to_string_lossy();
+        assert!(
+            s.ends_with(".lojix/store"),
+            "expected path ending in .lojix/store, got {s}"
+        );
+    }
+
+    #[test]
+    fn entry_tree_appends_hex() {
+        let root = StoreRoot(PathBuf::from("/tmp/lojix-store-test"));
+        let hash = StoreEntryHash([0u8; HASH_LEN]);
+        let path = root.entry_tree(hash);
+        let expected = format!("/tmp/lojix-store-test/{}", "0".repeat(HASH_LEN * 2));
+        assert_eq!(path.to_string_lossy(), expected);
+    }
+
+    #[test]
+    fn index_db_path_is_inside_root() {
+        let root = StoreRoot(PathBuf::from("/tmp/lojix-store-test"));
+        let idx = root.index_db_path();
+        assert_eq!(idx.to_string_lossy(), "/tmp/lojix-store-test/index.redb");
+    }
+}
