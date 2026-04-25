@@ -22,7 +22,7 @@
 //!
 //! This crate is types + trait signatures + module layout.
 //! Bodies are `todo!()`. Real implementation lands alongside
-//! lojix scaffolding (`mentci/reports/030` Phase C).
+//! lojix scaffolding.
 
 pub mod hash;
 pub mod layout;

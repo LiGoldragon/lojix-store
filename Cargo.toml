@@ -5,8 +5,7 @@ edition = "2024"
 description = "lojix-store — content-addressed filesystem (nix-store analogue; holds real unix files addressed by blake3)"
 
 # Skeleton-as-design. Types and traits are pinned; bodies are
-# todo!(). Real implementation lands alongside lojix scaffold
-# (mentci/reports/030 Phase C). See AGENTS.md.
+# todo!(). See AGENTS.md.
 
 [dependencies]
 blake3 = "1"

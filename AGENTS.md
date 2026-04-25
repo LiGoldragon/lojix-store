@@ -29,8 +29,7 @@ build` fails (intentional — nothing's implemented). The
 skeleton **is** the design doc; modifying the interface means
 modifying this code.
 
-Real implementation lands alongside lojix scaffolding (per
-`mentci/reports/030` Phase C).
+Real implementation lands alongside lojix scaffolding.
 
 ## Module layout
 
@@ -62,12 +61,6 @@ Read `src/lib.rs` for the overview.
   `normalise_timestamps`, `strip_build_id`, `rewrite_rpath`.
 
 ## Heritage
-
-Renamed from `criome-store` on 2026-04-24 (the earlier concept
-of "one universal store" split into sema + lojix-store). The
-original prototype (a byte-map `HashMap<Hash, Vec<u8>>`) was
-deleted; nothing from it survives. See
-`mentci/reports/037 §3` for the naming decision.
 
 ## VCS
 
