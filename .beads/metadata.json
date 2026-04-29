@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "arca",
+  "project_id": "6e6400c4-d03f-4374-8bf6-9849513422c6"
+}
