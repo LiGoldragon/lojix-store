@@ -2,14 +2,23 @@
 name = "arca"
 version = "0.1.0"
 edition = "2024"
-description = "arca — content-addressed filesystem (nix-store analogue; holds real unix files addressed by blake3). General-purpose; forge is one writer of many."
+description = "arca — content-addressed filesystem (nix-store analogue; holds real unix files addressed by blake3) + arca-daemon (privileged writer with write-only staging, multi-store, capability-token-gated deposits). General-purpose; forge is the most active writer of many."
 
 # Skeleton-as-design. Types and traits are pinned; bodies are
 # todo!(). See AGENTS.md.
 
+[lib]
+name = "arca"
+path = "src/lib.rs"
+
+[[bin]]
+name = "arca-daemon"
+path = "src/main.rs"
+
 [dependencies]
 blake3 = "1"
 thiserror = "2"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-util", "net", "fs"] }
 
 [lints.rust]
 unused = "allow"          # tolerate skeleton todo!()s

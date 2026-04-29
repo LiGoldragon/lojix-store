@@ -1,14 +1,26 @@
 //! arca — content-addressed filesystem for artifact trees.
 //!
 //! An analogue to the nix-store, hashed by blake3. Holds real
-//! unix files and directory trees under hash-derived paths. A
-//! compiled binary lives at `~/.arca/<blake3>/bin/<name>`
-//! and is directly executable.
+//! unix files and directory trees under hash-derived paths,
+//! organised into multiple stores under `~/.arca/<store>/`.
+//! A compiled binary lives at
+//! `~/.arca/<store>/<blake3>/bin/<name>` and is directly
+//! executable.
+//!
+//! Two pieces:
+//!
+//! - **Library** (this crate, [`arca`]) — public reader API +
+//!   on-disk layout types. Any process can link and read.
+//! - **Daemon** ([`arca-daemon`] binary, `src/main.rs`) — the
+//!   privileged writer. Owns a write-only staging directory;
+//!   verifies criome-signed capability tokens; computes
+//!   blake3; atomically moves deposits into the target store.
 //!
 //! General-purpose. forge writes build outputs into arca;
-//! future writers (uploads, document store, others) write into
-//! arca too. arca itself doesn't know what's in any entry —
-//! sema records own that knowledge.
+//! future writers (uploads, document store, others) write
+//! into arca too via arca-daemon's deposit flow. arca itself
+//! doesn't know what's in any entry — sema records own that
+//! knowledge.
 //!
 //! # Design invariants
 //!
