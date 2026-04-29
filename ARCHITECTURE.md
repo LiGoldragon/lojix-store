@@ -14,7 +14,7 @@ carry `StoreEntryHash` fields pointing into lojix-store.
 ```
 nix builds → /nix/store/<hash>-<name>/ (transient)
               │
-              │ lojix's BundleIntoLojixStore actor
+              │ lojix's StoreWriter actor
               │  • copy closure with RPATH rewrite (patchelf)
               │  • blake3 hash of canonical layout
               │

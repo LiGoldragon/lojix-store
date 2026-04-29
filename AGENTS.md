@@ -15,8 +15,8 @@ Per `criome/ARCHITECTURE.md §5`:
 - **sema records reference lojix-store hashes** as canonical
   artifact identity.
 
-During the bootstrap era, nix builds into `/nix/store`; lojix
-runs `BundleIntoLojixStore` to copy the closure into
+During the bootstrap era, nix builds into `/nix/store`; lojix's
+StoreWriter copies the closure into
 `~/.lojix/store/<blake3>/` with RPATH rewrite; the
 `StoreEntryHash` is what sema sees. `/nix/store` is a
 transient build-intermediate, not a destination.

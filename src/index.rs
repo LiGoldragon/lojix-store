@@ -12,8 +12,8 @@ use crate::hash::StoreEntryHash;
 use crate::{Error, Result};
 
 /// Reachability-from-sema status for GC coordination. criome
-/// updates these values via lojix-schema verbs as record graphs
-/// change.
+/// updates these values via signal verbs to lojix as record
+/// graphs change.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Reachability {
     /// Referenced by at least one live sema record.
