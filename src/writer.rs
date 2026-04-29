@@ -1,14 +1,14 @@
-//! Writer-side API for a lojix-store.
+//! Writer-side API for arca.
 //!
-//! **In-process only** — lives inside lojix. No public writer
-//! trait; the store is single-writer under criome-signed
-//! capability tokens, and those tokens are validated inside
-//! lojix before a `StoreWriter` is handed out.
+//! **In-process only** — lives inside the privileged writer.
+//! No public writer trait; arca is single-writer under criome-
+//! signed capability tokens, and those tokens are validated
+//! inside the writer before a `StoreWriter` is handed out.
 //!
 //! Nix's equivalent: `nix-daemon` is the only process that
 //! writes to `/nix/store`; everything else goes through its
-//! protocol. Same pattern here, but since lojix unifies forge
-//! + store concerns, writes happen via in-process actor calls.
+//! protocol. Same pattern here — forge holds the writer today;
+//! future privileged writers earn the capability the same way.
 
 use std::path::Path;
 
@@ -16,7 +16,7 @@ use crate::hash::StoreEntryHash;
 use crate::layout::StoreRoot;
 use crate::{Error, Result};
 
-/// Write-side handle to a lojix-store directory.
+/// Write-side handle to an arca directory.
 pub trait StoreWriter: Send {
     /// Place a tree under a newly-computed blake3 hash.
     ///
@@ -47,7 +47,8 @@ pub trait StoreWriter: Send {
 /// Concrete writer opening a store at `root`.
 ///
 /// NB: only one `StoreWriterHandle` should be alive per store
-/// root at a time. Enforcement is lojix's responsibility.
+/// root at a time. Enforcement is the writer process's
+/// responsibility.
 pub struct StoreWriterHandle {
     root: StoreRoot,
 }

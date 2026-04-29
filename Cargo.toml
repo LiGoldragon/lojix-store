@@ -1,8 +1,8 @@
 [package]
-name = "lojix-store"
+name = "arca"
 version = "0.1.0"
 edition = "2024"
-description = "lojix-store — content-addressed filesystem (nix-store analogue; holds real unix files addressed by blake3)"
+description = "arca — content-addressed filesystem (nix-store analogue; holds real unix files addressed by blake3). General-purpose; forge is one writer of many."
 
 # Skeleton-as-design. Types and traits are pinned; bodies are
 # todo!(). See AGENTS.md.

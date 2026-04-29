@@ -1,23 +1,23 @@
-//! Bundle a `/nix/store` output into lojix-store.
+//! Bundle a `/nix/store` output into arca.
 //!
-//! During the bootstrap era, most artifacts enter lojix-store
-//! via this path:
+//! During the bootstrap era, most artifacts enter arca via
+//! this path:
 //!
-//! 1. lojix invoked `nix build` — output landed in
+//! 1. forge invoked `nix build` — output landed in
 //!    `/nix/store/<narhash>-<name>/`.
 //! 2. The `BundleFromNix` step walks the output closure.
 //! 3. For each binary or shared-lib in the closure, patchelf
 //!    rewrites RPATH from `/nix/store/.../lib` to
-//!    `~/.lojix/store/<blake3-of-dep>/lib` (absolute lojix-store
-//!    paths — artifacts work regardless of cwd on the host).
+//!    `~/.arca/<blake3-of-dep>/lib` (absolute arca paths —
+//!    artifacts work regardless of cwd on the host).
 //! 4. Timestamps and other non-determinism are stripped so the
 //!    bundle is bit-reproducible.
 //! 5. The canonicalised tree is handed to `StoreWriter::put_tree`
 //!    which computes the final `StoreEntryHash` and places it.
 //!
 //! Eventually (post-nix-replacement) this step disappears —
-//! criome drives rustc directly and writes into lojix-store.
-//! The trait stays; only the input changes.
+//! the privileged writer drives rustc directly and writes into
+//! arca. The trait stays; only the input changes.
 
 use std::path::Path;
 
@@ -34,8 +34,8 @@ pub struct NixClosure<'a> {
     pub source_narhash: Option<String>,
 }
 
-/// Bundle step — takes a nix-store closure, produces a
-/// lojix-store entry. Implemented by lojix.
+/// Bundle step — takes a nix-store closure, produces an
+/// arca entry. Implemented by the privileged writer (forge).
 pub trait BundleFromNix {
     fn bundle(&mut self, closure: NixClosure<'_>) -> Result<StoreEntryHash>;
 }
@@ -48,7 +48,7 @@ pub struct BundlePolicy {
     pub normalise_timestamps: bool,
     /// Strip build-id from ELF `.note.gnu.build-id`.
     pub strip_build_id: bool,
-    /// Rewrite RPATHs to absolute lojix-store paths.
+    /// Rewrite RPATHs to absolute arca paths.
     pub rewrite_rpath: bool,
 }
 

@@ -1,4 +1,4 @@
-//! Reader-side API for a lojix-store.
+//! Reader-side API for arca.
 //!
 //! Public — any process can link this and read the store. Reads
 //! are mmap-friendly and don't require a daemon round-trip. The
@@ -12,7 +12,7 @@ use crate::hash::StoreEntryHash;
 use crate::layout::{StorePath, StoreRoot};
 use crate::{Error, Result};
 
-/// Read-only handle to a lojix-store directory.
+/// Read-only handle to an arca directory.
 pub trait StoreReader {
     /// Does the given hash exist in this store?
     fn contains(&self, hash: StoreEntryHash) -> Result<bool>;

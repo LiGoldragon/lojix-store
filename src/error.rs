@@ -1,4 +1,4 @@
-//! Error type for lojix-store operations.
+//! Error type for arca operations.
 
 use std::io;
 use std::path::PathBuf;

@@ -1,36 +1,42 @@
-# ARCHITECTURE — lojix-store
+# ARCHITECTURE — arca
 
 A content-addressed filesystem — nix-store analogue, hashed by
 blake3 of canonical encoding. Holds **actual unix files and
 directory trees**, not blobs. A compiled binary lives at a
 hash-derived path; you `exec` it directly.
 
+General-purpose. Any data that doesn't fit in sema's record
+shape lives here: forge build outputs, user attachments,
+documents, anything blob-shaped. forge happens to be the only
+writer today; future writers earn the same write capability
+via criome-signed tokens.
+
 ## Role
 
-The two-stores model: **sema** holds records; **lojix-store**
-holds artifact files referenced from sema by hash. Sema records
-carry `StoreEntryHash` fields pointing into lojix-store.
+The two-stores model: **sema** holds records; **arca** holds
+artifact files referenced from sema by hash. Sema records
+carry `StoreEntryHash` fields pointing into arca.
 
 ```
 nix builds → /nix/store/<hash>-<name>/ (transient)
               │
-              │ lojix's StoreWriter actor
+              │ forge's StoreWriter actor
               │  • copy closure with RPATH rewrite (patchelf)
               │  • blake3 hash of canonical layout
               │
               ▼
-~/.lojix/store/<blake3>/  (canonical, sema-referenced)
+~/.arca/<blake3>/  (canonical, sema-referenced)
 ```
 
-Sema records reference lojix-store hashes as canonical
-identity; `/nix/store` is a transient build-intermediate.
+Sema records reference arca hashes as canonical identity;
+`/nix/store` is a transient build-intermediate.
 
 ## Boundaries
 
 Owns:
 
-- The `~/.lojix/store/` directory layout (hash-keyed
-  subdirectories, close to `/nix/store/<hash>-<name>/`).
+- The `~/.arca/` directory layout (hash-keyed subdirectories,
+  close to `/nix/store/<hash>-<name>/`).
 - The redb index DB mapping
   `blake3 → { path, metadata, reachability }`.
 - Reader and writer types.
@@ -39,21 +45,20 @@ Does not own:
 
 - The artifact files' content semantics — those are known only
   through the sema record that references the hash.
-- Garbage collection — criome maintains the reachability view
-  via sema records; lojix-store is GC's executor, not its
-  policy author.
-- Capability-token verification — that's criome's
-  authorization layer; lojix-store trusts criome-signed
-  tokens.
+- Garbage collection policy — criome maintains the reachability
+  view via sema records; arca is GC's executor, not its policy
+  author.
+- Capability-token verification — that's criome's authorization
+  layer; arca trusts criome-signed tokens passed by writers.
 
 ## Day-one canonical
 
-lojix-store ships **alongside lojix from day one**, not after
-some migration phase. Reasoning: dogfooding the real interface
-now reveals what it actually needs; deferred implementations
-rot. The gradualist path "nix builds; lojix-store stores;
-loosen dep on nix over time" is strictly safer than "nix
-forever until Big Bang replace."
+arca ships **alongside forge from day one**, not after some
+migration phase. Reasoning: dogfooding the real interface now
+reveals what it actually needs; deferred implementations rot.
+The gradualist path "nix builds; arca stores; loosen dep on
+nix over time" is strictly safer than "nix forever until Big
+Bang replace."
 
 ## Code map
 
@@ -68,12 +73,12 @@ src/
 
 The hash + layout helpers have real implementations and tests.
 The reader/writer trait methods are `todo!()` skeleton; bodies
-land in lojix's StoreWriter / StoreReaderPool actors.
+land alongside forge's StoreWriter / StoreReaderPool actors.
 
 ## Invariants
 
-- **No typing.** lojix-store does not know what a hash points
-  at; sema records own that knowledge.
+- **No typing.** arca does not know what a hash points at;
+  sema records own that knowledge.
 - **Hash is canonical identity.** Renames or path changes do
   not change the hash; only content does.
 - **Atomic writes.** Writers create a temp directory, then
@@ -91,5 +96,4 @@ land in lojix's StoreWriter / StoreReaderPool actors.
 ## Status
 
 **CANON, day-one skeleton.** Hash and layout filled; reader /
-writer body fills land alongside lojix scaffolding (Phase C
-per [lojix-cli repo's ARCHITECTURE.md](https://github.com/LiGoldragon/lojix-cli/blob/main/ARCHITECTURE.md)).
+writer body fills land alongside forge scaffolding.
